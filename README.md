@@ -1,2 +1,2 @@
 # Lambda_scripts
-This is lambda script for AWS ec2 start and stop schedule
+Process to Auto Start and Stop an EC2 instance using Lambda function
