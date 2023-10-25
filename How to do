@@ -1,0 +1,48 @@
+Scheduled Stop and Start your AWS EC2 instances
+
+Scheduling the start and stop times of AWS EC2 instances is a cost-effective strategy for optimizing cloud spending. By proactively managing instance uptime, businesses can align computing resources with actual usage patterns. This approach minimizes unnecessary runtime hours, leading to significant cost savings. It's particularly beneficial for non-production environments, development, and testing setups, where instances don't need to run 24/7. 
+Manually accomplishing this Start/Stop would be a very inefficient way. In here we will leverage Amazon EventBridge to invoke the Lambda function to Stop or Start the specific instance, segregated by “Tag”.
+Prerequisite:
+User with permission to perform IAM, EC2, Lambda, CloudWatch, and EventBridge activities.
+
+!!!!....Step 1:  EC2 tag....!!!!
+Login AWS account and navigate to the EC2 dashboard. Select the specific EC2 instance and create the proper tag to identify and invoke the Lambda function. You can create or use any existing tag that serves your purpose. In here we create a tag Key: Lambda with Value: Scheduled for our convenience.
+
+ 
+!!!!....Step 2: Create IAM Policy and Role....!!!!
+Now we need IAM policy with the required permission and Role attached to the created IAM policy.
+Navigate to IAM dashboard and select the Policies menu. Click on Create policy from top right corner and click on JSON.
+Paste the "IAM_Policies JSON" code on the Policy editor and click on Next. Name the policy, review it, and create the policy.
+
+Now navigate to Roles menu and click on Create role.
+Select AWS service. Select Lambda from "Use case" drop-down menu and move to next. Now select your created IAM policy and "AWSLambdaBasicExecutionRole". Then review and Create the role.
+
+
+!!!!....Step 3: Create Lambda function with python code.....!!!!
+Now we’ll create the Lambda function with Python script. Navigate to Lambda dashboard from the AWS management console and click on Create function. We’ll create 02 separate functions for start and stop instances. 
+
+First Stop instance script. Select option “Author from scratch” and name the function, here we named “stop_ec2_lambda”, and select Runtime as Python 3. Now we need to set the permissions. Select “Use an existing role” from the Change default execution role dropdown menu. Then from the Existing role option, select the role we created earlier (start-stop_ec2_instances_role) from the dropdown menu and create a function. 
+paste the "ec2_stop_lambda.py" code in the Code section. 
+***Make sure you change the region to your desired one. Also, the tag name and value as you set earlier.
+
+Repeat the same step for "Start instance". Just change the function name to “start_ec2_lambda” and paste code from "ec2_start_lambda.py" in the Code section. 
+
+
+
+!!!!....Step 4: Create schedule with Amazon EventBridge....!!!!
+Now move to the Amazon EventBridge dashboard and create EventBridge rule. We’ll create 02 separate rules for Start and Stop instances. 
+First, create a schedule to stop instance. Name the Schedule, we name “stop_instance” and select “Schedule” from the Rule type and Continue to create rule. Now schedule the event. 
+There are a couple of other schedule patterns, but we use cron for our job. Here we schedule the event to trigger at 10PM Monday to Friday throughout the year. The Cron expression time is in UTC, you can select your Local time zone from the dropdown menu for your convenience. For more details on Cron-based schedules follow this link. Once done with the schedule, click next.
+
+Note: Linux cron expression and AWS cron expression work differently. 
+
+Now, choose the AWS service from the "Target types" option and select the Lambda function from the "Select target" dropdown menu. In the Function dropdown menu, select "stop-ec2-lambda" since we're scheduling the EC2 stop task. Click on next. Now review and click on "Create rule".
+
+Repeat the same process to create a new rule for starting the EC2. Remember to change the function to "start-ec2-lambda" in Step 3 (Target section).
+
+Now check whether your instance is Stopping and Starting at your scheduled time or not. However, you can check the logs from CloudWatch. Select “Log groups” from the CloudWatch dashboard and you’ll find your lambda logs grouped there.
+
+
+-------------------------END-------------------------
+
+
